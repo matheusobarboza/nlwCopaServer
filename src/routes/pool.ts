@@ -10,24 +10,43 @@ export async function poolRoutes(fastify: FastifyInstance) {
     return { count };
   });
 
-  fastify.post('/pools', async (request, reply) => {
+  fastify.post("/pools", async (request, reply) => {
     const createPoolBody = z.object({
-      title: z.string(),
-    })
-    
-    const { title } = createPoolBody.parse(request.body)
+      title: z.string()
+    });
 
-    const generate = new ShortUniqueId({ length: 6 })
+    const { title } = createPoolBody.parse(request.body);
 
-    const code = String(generate()).toUpperCase()
+    const generate = new ShortUniqueId({ length: 6 });
 
-    await prisma.pool.create({
-      data: {
-        title,
-        code,
-      }
-    })
-    
-    return reply.status(201).send({ code })
-  })
+    const code = String(generate()).toUpperCase();
+    console.log('code aqui aqui aqui ', code)
+
+    try {
+      await request.jwtVerify();
+
+      await prisma.pool.create({
+        data: {
+          title,
+          code,
+          ownerId: request.user.sub,
+
+          participants: {
+            create: {
+              userId: request.user.sub
+            }
+          }
+        }
+      });
+    } catch {
+      await prisma.pool.create({
+        data: {
+          title,
+          code,
+        }
+      });
+    }
+
+    return reply.status(201).send({ code });
+  });
 }
