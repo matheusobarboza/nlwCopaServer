@@ -20,7 +20,6 @@ export async function poolRoutes(fastify: FastifyInstance) {
     const generate = new ShortUniqueId({ length: 6 });
 
     const code = String(generate()).toUpperCase();
-    console.log('code aqui aqui aqui ', code)
 
     try {
       await request.jwtVerify();
